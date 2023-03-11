@@ -2,7 +2,9 @@ package pro.sky.telegrambot.listener;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
+import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +18,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
-    @Autowired
-    private TelegramBot telegramBot;
+    private final TelegramBot telegramBot;
+
+    public TelegramBotUpdatesListener(TelegramBot telegramBot) {
+        this.telegramBot = telegramBot;
+    }
 
     @PostConstruct
     public void init() {
@@ -29,6 +34,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         updates.forEach(update -> {
             logger.info("Processing update: {}", update);
             // Process your updates here
+            var messageReceived = update.message();
+            if (messageReceived.text().equals("/start")) {
+                var inputMessageChartId = messageReceived.chat().id();
+                SendMessage messageToSend = new SendMessage(inputMessageChartId, "Bot is working!");
+                telegramBot.execute(messageToSend);
+            }
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
